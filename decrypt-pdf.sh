@@ -1,17 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [[ $# == 1 ]]; then
-	input_dir=$1
-else
-	echo "Usage: $0 {input_dir}"
-	exit 255
+set -euox pipefail
+
+# Check if qpdf is installed
+if ! command -v qpdf &> /dev/null
+then
+    echo "qpdf could not be found"
+    exit 1
 fi
 
-output_dir="${input_dir}.decrypted"
-mkdir -p $output_dir
+# Check input file
+if [ ! -f "$1" ]; then
+    echo "File $1 does not exist"
+    exit 1
+fi
 
-for fn in `ls -1 $input_dir`
-do
-	qpdf --decrypt ${input_dir}/$fn ${output_dir}/$fn
-done
+TEMP_FILE="$(uuidgen).pdf"
 
+qpdf --decrypt "$1" "$TEMP_FILE"
+mv "$TEMP_FILE" "$1"
